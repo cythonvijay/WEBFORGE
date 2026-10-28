@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.db
+.pytest_cache/
+frontend/qa/node_modules/
+frontend/qa/shots/
+verification-report*.json

@@ -1,0 +1,26 @@
+# Production Compose overlay (`docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d`)
+services:
+  postgres:
+    expose:
+      - "5432"
+    restart: unless-stopped
+
+  migrate:
+    environment:
+      ENVIRONMENT: production
+      LOG_JSON: "true"
+    restart: "no"
+
+  backend:
+    environment:
+      ENVIRONMENT: production
+      LOG_JSON: "true"
+      COOKIE_SECURE: "true"
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  frontend:
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-8080}:8080"
+    restart: unless-stopped

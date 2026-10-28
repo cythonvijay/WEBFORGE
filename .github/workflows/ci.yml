@@ -1,0 +1,213 @@
+name: WebForge CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      run_live_ai:
+        description: "Run optional live Gemini AI smoke check (requires GOOGLE_AI_API_KEY secret)"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security-and-hygiene:
+    name: Secret Scan & Static Security Controls
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run secret scan and static security checks
+        run: |
+          python3 - <<'EOF'
+          from backend.scripts.verify_phase14 import check_secret_hygiene, check_static_security_controls
+          from backend.scripts.verify_phase17 import check_phase17_export_bundle_and_security_controls
+          for label, fn in [("Secret Hygiene", check_secret_hygiene), ("Static Security", check_static_security_controls), ("Phase 17 Export Security", check_phase17_export_bundle_and_security_controls)]:
+              status, detail = fn()
+              print(f"[{status}] {label}: {detail}")
+              if status != "PASSED":
+                  raise SystemExit(1)
+          EOF
+
+  backend-sqlite-and-ops:
+    name: Backend Unit/API Tests, Migrations & Backup Verification
+    runs-on: ubuntu-24.04
+    needs: [security-and-hygiene]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: "backend/requirements.txt"
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Verify Alembic migration upgrade/downgrade chain (0001..0009)
+        working-directory: backend
+        env:
+          DATABASE_URL: sqlite:///./ci_migrations.db
+          JWT_SECRET: ci-migration-verification-secret-0123456789abcdef
+        run: |
+          alembic upgrade head
+          alembic downgrade base
+          alembic upgrade head
+          python -m scripts.db_ops check
+          rm -f ci_migrations.db
+      - name: Verify disposable database backup and restore round-trip
+        working-directory: backend
+        env:
+          DATABASE_URL: sqlite:///./ci_ops.db
+          JWT_SECRET: ci-backup-verification-secret-0123456789abcdef
+        run: |
+          python -m scripts.db_ops verify-backup-restore
+          rm -f ci_ops.db
+      - name: Run backend SQLite test suite
+        working-directory: backend
+        run: python -m pytest -q
+
+  backend-postgres-integration:
+    name: Backend PostgreSQL 16 Integration & Concurrency Suite
+    runs-on: ubuntu-24.04
+    needs: [security-and-hygiene]
+    services:
+      postgres:
+        image: postgres:16-bookworm
+        env:
+          POSTGRES_USER: webforge
+          POSTGRES_PASSWORD: ci_test_password_not_for_prod
+          POSTGRES_DB: webforge_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U webforge -d webforge_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: "backend/requirements.txt"
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Verify Alembic migrations and full test suite against PostgreSQL 16
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql+psycopg://webforge:ci_test_password_not_for_prod@127.0.0.1:5432/webforge_test
+          TEST_DATABASE_URL: postgresql+psycopg://webforge:ci_test_password_not_for_prod@127.0.0.1:5432/webforge_test
+          JWT_SECRET: ci-postgres-integration-secret-0123456789abcdef
+        run: |
+          python -m scripts.db_ops migrate
+          python -m pytest -q
+
+  frontend-verify:
+    name: Frontend Typecheck, Unit Tests & Production Build
+    runs-on: ubuntu-24.04
+    needs: [security-and-hygiene]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: "frontend/package-lock.json"
+      - name: Install frontend dependencies from lockfile
+        working-directory: frontend
+        run: npm ci --no-audit --no-fund
+      - name: Run TypeScript typecheck
+        working-directory: frontend
+        run: npm run typecheck
+      - name: Run frontend unit tests
+        working-directory: frontend
+        run: npm test
+      - name: Build production frontend bundle and validate output artifacts
+        working-directory: frontend
+        run: |
+          npm run build
+          test -f dist/index.html
+          test -d dist/assets
+          if grep -R -E "AIza[0-9A-Za-z_-]{20,}|JWT_SECRET|GOOGLE_AI_API_KEY" dist/; then
+            echo "Server secret reference leaked into frontend dist bundle!" >&2
+            exit 1
+          fi
+
+  dependency-audit:
+    name: Dependency Security Audit (pip-audit & npm audit)
+    runs-on: ubuntu-24.04
+    needs: [security-and-hygiene]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Audit Python dependencies with pip-audit
+        run: |
+          pip install pip-audit
+          pip-audit -r backend/requirements.txt
+      - name: Audit Node dependencies with npm audit
+        working-directory: frontend
+        run: npm audit --omit=dev --audit-level=high
+
+  container-build-verify:
+    name: Docker Image Build, Non-Root & Compose Validation
+    runs-on: ubuntu-24.04
+    needs: [backend-sqlite-and-ops, frontend-verify]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Docker Compose configurations
+        env:
+          POSTGRES_PASSWORD: ci_compose_validation_password
+          JWT_SECRET: ci-compose-validation-secret-0123456789abcdef
+        run: |
+          cp .env.example .env
+          docker compose config -q
+          docker compose -f docker-compose.yml -f docker-compose.prod.yml config -q
+          rm -f .env
+      - name: Build backend image and verify non-root runtime user
+        run: |
+          docker build -t webforge-backend:ci ./backend
+          BACKEND_UID="$(docker run --rm --entrypoint id webforge-backend:ci -u)"
+          test "$BACKEND_UID" != "0"
+      - name: Build frontend image and verify non-root runtime user
+        run: |
+          docker build -t webforge-frontend:ci ./frontend
+          FRONTEND_UID="$(docker run --rm --entrypoint id webforge-frontend:ci -u)"
+          test "$FRONTEND_UID" != "0"
+
+  optional-live-ai:
+    name: Optional Live Gemini Provider Verification
+    if: github.event_name == 'workflow_dispatch' && inputs.run_live_ai == 'true'
+    runs-on: ubuntu-24.04
+    needs: [backend-sqlite-and-ops]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Verify live Gemini provider connectivity without printing secrets
+        working-directory: backend
+        env:
+          DATABASE_URL: sqlite:///./ci_live_ai.db
+          JWT_SECRET: ci-live-ai-verification-secret-0123456789abcdef
+          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
+        run: python -m app.provider_check --live

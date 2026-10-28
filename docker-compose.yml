@@ -1,0 +1,76 @@
+services:
+  postgres:
+    image: postgres:16-bookworm
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-webforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (see .env.example)}
+      POSTGRES_DB: ${POSTGRES_DB:-webforge}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"   # loopback-only host access for local psql/tests
+    networks:
+      - webforge_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: ./backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-webforge}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-webforge}
+    command: ["python", "-m", "scripts.db_ops", "migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - webforge_internal
+    restart: "no"
+
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      # Containers reach PostgreSQL by internal service name, never 127.0.0.1.
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-webforge}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-webforge}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - webforge_internal
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/live', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build: ./frontend
+    profiles: ["fullstack"]
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - webforge_internal
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  webforge_internal:
+    driver: bridge
+
+volumes:
+  pgdata:

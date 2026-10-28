@@ -1,0 +1,20 @@
+import { launch, sleep, waitText, waitPath, btn, typeInto, summary } from "./lib.mjs";
+const BASE = process.env.BASE;
+const { browser, page, log } = await launch(1440, 900);
+const email = `qa-n-${Date.now()}@example.com`;
+await page.goto(BASE + "/register"); await typeInto(page, "Email", email); await typeInto(page, "Password", "password123"); await btn(page, "Create account"); await waitPath(page, "^/projects$"); await waitText(page, "No projects yet.");
+const id = await page.evaluate(async () => (await (await fetch("/api/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "Net", description: "" }) })).json()).id);
+const count = (reset = true) => { const g = {}; for (const r of log.requests) { const k = `${r.m} ${r.p.replace(/[0-9a-f-]{36}/g, ":id")} ${r.s}`; g[k] = (g[k] || 0) + 1; } if (reset) log.requests.length = 0; return g; };
+count();
+await page.goto(BASE + `/projects/${id}/overview`); await waitText(page, "Lifecycle"); await sleep(800);
+const overviewLoad = count();
+await page.select('select[aria-label="Set status for Research"]', "complete"); await sleep(800);
+const afterStage = count();
+await page.goto(BASE + "/projects"); await waitText(page, "Net"); await sleep(800);
+const projectsLoad = count();
+// logout: does page JS receive the 204? (CDP can report ERR_ABORTED for 204 responses)
+log.failed.length = 0;
+const status = await page.evaluate(() => fetch("/api/auth/logout", { method: "POST" }).then((r) => r.status));
+await sleep(1000);
+console.log(JSON.stringify({ build: BASE, overviewLoad, projectsLoad, afterStage, logoutSeenByJs: status, cdpFailed: log.failed, console: log.console, pageerrors: log.pageerrors }, null, 1));
+await browser.close();
