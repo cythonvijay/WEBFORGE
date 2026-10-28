@@ -279,7 +279,7 @@ export default function PrototypePage() {
 
               {uiState !== "default" ? (
                 <div className="rounded border border-slate-300 bg-slate-50 p-5 text-center space-y-2" data-testid="proto-state-view">
-                  <Badge tone={uiState === "error" ? "error" : uiState === "success" ? "success" : "info"}>
+                  <Badge tone={uiState === "error" ? "danger" : uiState === "success" ? "success" : "info"}>
                     SIMULATED {uiState.toUpperCase()} STATE
                   </Badge>
                   <p className="text-sm text-slate-700">{currentScreen.states[uiState]}</p>
