@@ -342,10 +342,8 @@ function FunctionalReqDialog({ req, availableRefs, onSubmit, onClose }: { req?: 
   const [description, setDescription] = useState(req?.description ?? "");
   const [priority, setPriority] = useState<Priority>(req?.priority ?? "must_have");
   const [boundary, setBoundary] = useState<MvpBoundary>(req?.mvp_boundary ?? "in_mvp");
-  const [criteriaText, setCriteriaText] = useState((req?.acceptance_criteria ?? []).join("
-"));
-  const [edgeText, setEdgeText] = useState((req?.edge_cases ?? []).join("
-"));
+  const [criteriaText, setCriteriaText] = useState((req?.acceptance_criteria ?? []).join("\n"));
+  const [edgeText, setEdgeText] = useState((req?.edge_cases ?? []).join("\n"));
   const [refs, setRefs] = useState<string[]>(req?.source_refs ?? (availableRefs[0] ? [availableRefs[0]] : []));
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -363,10 +361,8 @@ function FunctionalReqDialog({ req, availableRefs, onSubmit, onClose }: { req?: 
             status: req?.status ?? "proposed",
             user_story_ids: req?.user_story_ids ?? [],
             source_refs: refs,
-            acceptance_criteria: criteriaText.split("
-").map((s) => s.trim()).filter(Boolean),
-            edge_cases: edgeText.split("
-").map((s) => s.trim()).filter(Boolean),
+            acceptance_criteria: criteriaText.split("\n").map((s) => s.trim()).filter(Boolean),
+            edge_cases: edgeText.split("\n").map((s) => s.trim()).filter(Boolean),
             dependencies: req?.dependencies ?? [],
           });
         } catch (err) { setErrors(messagesOf(err)); setBusy(false); }
