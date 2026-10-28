@@ -1,4 +1,6 @@
-import type { ArtifactStatus, GenerationSource } from "./research";\n\nexport interface UpstreamWarning { artifact: string; workspace: string; message: string; }
+import type { ArtifactStatus, GenerationSource } from "./research";
+
+export interface UpstreamWarning { artifact: string; workspace: string; message: string; }
 
 export type OptimizationArea = "seo" | "analytics" | "performance";
 export type OptimizationItemStatus = "proposed" | "confirmed" | "requires_review";
