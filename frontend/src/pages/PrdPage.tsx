@@ -15,8 +15,8 @@ import { formatDateTime } from "../lib/utils";
 import type { FunctionalRequirement, MvpBoundary, PrdDocument, PrdEditResponse, PrdState, Priority } from "../types/prd";
 import { useProject } from "./ProjectLayout";
 
-const PRIORITY_LABELS: Record<Priority, { label: string; tone: "error" | "warning" | "info" | "neutral" }> = {
-  must_have: { label: "Must have", tone: "error" },
+const PRIORITY_LABELS: Record<Priority, { label: string; tone: "danger" | "warning" | "info" | "neutral" }> = {
+  must_have: { label: "Must have", tone: "danger" },
   should_have: { label: "Should have", tone: "warning" },
   could_have: { label: "Could have", tone: "info" },
   wont_have: { label: "Won't have", tone: "neutral" },
