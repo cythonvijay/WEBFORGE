@@ -509,8 +509,7 @@ export default function ArchitecturePage() {
           title="Supersede current draft and regenerate?"
           body="Your existing draft version will remain in version history as superseded, and a new Product Architecture draft will be generated from your current approved artifacts."
           confirmLabel="Supersede & regenerate"
-          busy={busy === "generate"}
-          onCancel={() => setModal(null)}
+          onClose={() => setModal(null)}
           onConfirm={() =>
             run(
               "generate",
