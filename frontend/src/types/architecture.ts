@@ -1,7 +1,9 @@
 import type { DocStatus } from "./strategy";
-import type { OptimizationPrerequisitesStatus } from "./optimization";
-
-type PrerequisiteCheck = OptimizationPrerequisitesStatus;
+type PrerequisiteCheck = {
+  ready: boolean;
+  missing: { artifact: string; label: string; message: string; workspace_path: string }[];
+  upstream_versions: Record<string, number | null>;
+};
 
 export type ComponentLayer = "frontend" | "backend" | "data" | "integration" | "infrastructure";
 export type TrustZone =
