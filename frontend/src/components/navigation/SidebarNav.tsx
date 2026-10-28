@@ -6,6 +6,10 @@ const link = ({ isActive }: { isActive: boolean }) =>
   cn("flex items-center justify-between rounded-md px-2.5 py-1.5", isActive ? "bg-slate-100 font-medium text-slate-900" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900");
 
 export function SidebarNav({ projectId }: { projectId?: string }) {
+  const groups = Array.from(new Set(PROJECT_NAV.map((item) => item.group))).map((label) => ({
+    label,
+    items: PROJECT_NAV.filter((item) => item.group === label),
+  }));
   return (
     <nav aria-label="Primary" className="space-y-4 p-3">
       <div className="space-y-0.5">
