@@ -163,14 +163,10 @@ function PersonaDialog({ persona, validReqs, onSubmit, onClose }: { persona?: Pe
   const [name, setName] = useState(persona?.name ?? "");
   const [segment, setSegment] = useState(persona?.segment ?? "");
   const [context, setContext] = useState(persona?.context ?? "");
-  const [goals, setGoals] = useState((persona?.goals ?? []).join("
-"));
-  const [tasks, setTasks] = useState((persona?.tasks_behaviors ?? []).join("
-"));
-  const [needs, setNeeds] = useState((persona?.needs_pain_points ?? []).join("
-"));
-  const [a11y, setA11y] = useState((persona?.accessibility_device_notes ?? []).join("
-"));
+  const [goals, setGoals] = useState((persona?.goals ?? []).join("\n"));
+  const [tasks, setTasks] = useState((persona?.tasks_behaviors ?? []).join("\n"));
+  const [needs, setNeeds] = useState((persona?.needs_pain_points ?? []).join("\n"));
+  const [a11y, setA11y] = useState((persona?.accessibility_device_notes ?? []).join("\n"));
   const [reqs, setReqs] = useState<string[]>(persona?.prd_requirement_ids ?? (validReqs[0] ? [validReqs[0]] : []));
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
@@ -184,14 +180,10 @@ function PersonaDialog({ persona, validReqs, onSubmit, onClose }: { persona?: Pe
             name: name.trim(),
             segment: segment.trim(),
             context: context.trim(),
-            goals: goals.split("
-").map((s) => s.trim()).filter(Boolean),
-            tasks_behaviors: tasks.split("
-").map((s) => s.trim()).filter(Boolean),
-            needs_pain_points: needs.split("
-").map((s) => s.trim()).filter(Boolean),
-            accessibility_device_notes: a11y.split("
-").map((s) => s.trim()).filter(Boolean),
+            goals: goals.split("\n").map((s) => s.trim()).filter(Boolean),
+            tasks_behaviors: tasks.split("\n").map((s) => s.trim()).filter(Boolean),
+            needs_pain_points: needs.split("\n").map((s) => s.trim()).filter(Boolean),
+            accessibility_device_notes: a11y.split("\n").map((s) => s.trim()).filter(Boolean),
             prd_requirement_ids: reqs,
             evidence_status: persona?.evidence_status ?? "hypothesis",
           });
