@@ -31,3 +31,9 @@ export interface ResearchState {
   can_generate: boolean; needs_supersede: boolean; can_submit: boolean; can_approve: boolean; limitations: string[];
 }
 export interface EditResponse { report: Report; state: ResearchState }
+
+
+// Shared lifecycle metadata used by downstream specification workspaces.
+export type ArtifactStatus = "generating" | "failed" | "draft" | "in_review" | "approved" | "superseded";
+export type GenerationSource = "ai" | "user" | "system" | "baseline";
+export interface UpstreamWarning { code: string; message: string; }
