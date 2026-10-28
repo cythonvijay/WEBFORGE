@@ -131,7 +131,7 @@ class ResearchReport(Base):
     parent_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_via: Mapped[str] = mapped_column(String, default="generated")  # generated | copy_of_approved
     error: Mapped[str | None] = mapped_column(String, nullable=True)  # safe, categorized message only
-    created_by: Mapped[str] = mapped_column(String)
+    created_by: Mapped[str | None] = mapped_column(String, nullable=True)
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     approved_by: Mapped[str | None] = mapped_column(String, nullable=True)
