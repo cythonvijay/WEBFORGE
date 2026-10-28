@@ -15,12 +15,12 @@ import { formatDateTime } from "../lib/utils";
 import type { RecArea, RecStatus, StrategyDocument, StrategyEditResponse, StrategyInputs, StrategyRecommendation, StrategyState } from "../types/strategy";
 import { useProject } from "./ProjectLayout";
 
-const REC_STATUS_LABELS: Record<RecStatus, { label: string; tone: "success" | "info" | "warning" | "error" | "neutral" }> = {
+const REC_STATUS_LABELS: Record<RecStatus, { label: string; tone: "success" | "info" | "warning" | "danger" | "neutral" }> = {
   grounded_in_confirmed: { label: "Grounded in confirmed fact", tone: "success" },
   supported_by_research: { label: "Supported by research", tone: "info" },
   ai_suggestion: { label: "AI suggestion", tone: "warning" },
   hypothesis: { label: "Hypothesis", tone: "warning" },
-  unsupported: { label: "Unsupported — needs evidence", tone: "error" },
+  unsupported: { label: "Unsupported — needs evidence", tone: "danger" },
 };
 
 const REC_AREAS: Record<RecArea, string> = {
@@ -290,7 +290,7 @@ export default function StrategyPage() {
                       <span className="font-semibold">{r.title}</span>
                       <Badge>{REC_AREAS[r.area]}</Badge>
                       <Badge tone={REC_STATUS_LABELS[r.status].tone}>{REC_STATUS_LABELS[r.status].label}</Badge>
-                      {r.needs_evidence && <Badge tone="error">Needs evidence</Badge>}
+                      {r.needs_evidence && <Badge tone="danger">Needs evidence</Badge>}
                     </div>
                     {canEdit && (
                       <div className="flex gap-1">
