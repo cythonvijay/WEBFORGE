@@ -125,7 +125,7 @@ export default function WireframesPage() {
 
                 {previewState !== "default" ? (
                   <div className="rounded border border-slate-300 bg-white p-4 text-center text-sm">
-                    <Badge tone={previewState === "error" ? "error" : previewState === "success" ? "success" : "info"}>
+                    <Badge tone={previewState === "error" ? "danger" : previewState === "success" ? "success" : "info"}>
                       {previewState.toUpperCase()} STATE
                     </Badge>
                     <p className="mt-2 text-slate-700">{w.states[previewState]}</p>
