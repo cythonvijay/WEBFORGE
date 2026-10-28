@@ -13,8 +13,8 @@ import { useAsync } from "../lib/useAsync";
 import type { FindingSeverity, FindingStatus, UxArtifactState, UxDocument, UxEditResponse, UxReviewContent, UxReviewFinding } from "../types/ux";
 import { useProject } from "./ProjectLayout";
 
-const SEV_TONE: Record<FindingSeverity, "error" | "warning" | "info" | "neutral"> = {
-  critical: "error",
+const SEV_TONE: Record<FindingSeverity, "danger" | "warning" | "info" | "neutral"> = {
+  critical: "danger",
   high: "warning",
   medium: "info",
   low: "neutral",
