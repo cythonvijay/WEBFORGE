@@ -87,7 +87,7 @@ export default function UxReviewPage() {
             <p className="text-sm text-slate-700">{content.summary}</p>
             {doc?.review_counts && (
               <div className="flex flex-wrap gap-1.5 text-xs pt-1">
-                <Badge tone={doc.review_counts.critical_open > 0 ? "error" : "success"}>
+                <Badge tone={doc.review_counts.critical_open > 0 ? "danger" : "success"}>
                   Critical open: {doc.review_counts.critical_open}
                 </Badge>
                 <Badge tone="info">Deterministic checks: {doc.review_counts.deterministic}</Badge>
