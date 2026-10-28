@@ -191,7 +191,7 @@ describe("Phase 16 Optimization Workspaces (SEO, Analytics & Performance)", () =
       "GET /projects/:id/optimization/seo": { body: sampleSeoState },
     });
 
-    renderApp(["/projects/p1/seo"]);
+    renderApp("/projects/p1/seo");
 
     expect(await screen.findByText("SEO & Search Discoverability")).toBeInTheDocument();
     expect(screen.getByText("SEO-PAGE-1")).toBeInTheDocument();
@@ -223,7 +223,7 @@ describe("Phase 16 Optimization Workspaces (SEO, Analytics & Performance)", () =
       },
     });
 
-    renderApp(["/projects/p1/seo"]);
+    renderApp("/projects/p1/seo");
 
     expect(await screen.findByText(/Product Architecture has no approved version yet/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Go to Product Architecture/i })).toHaveAttribute(
@@ -253,7 +253,7 @@ describe("Phase 16 Optimization Workspaces (SEO, Analytics & Performance)", () =
       },
     });
 
-    renderApp(["/projects/p1/seo"]);
+    renderApp("/projects/p1/seo");
 
     const submitBtn = await screen.findByRole("button", { name: /Submit for Review/i });
     await user.click(submitBtn);
