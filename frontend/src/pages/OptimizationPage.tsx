@@ -113,7 +113,7 @@ export function OptimizationWorkspace({ area }: { area: OptimizationArea }) {
   };
 
   if (load.loading && !state) return <LoadingState label={`Loading ${meta.title}...`} />;
-  if (load.error && !state) return <ErrorState message={load.error} onRetry={load.reload} />;
+  if (load.error && !state) return <ErrorState message={load.error.message} onRetry={load.reload} />;
   if (!state) return null;
 
   const active: OptimizationDocument | null =
@@ -1109,7 +1109,7 @@ function ApproveOptimizationDialog({
   const [note, setNote] = useState("");
 
   return (
-    <Dialog open title={`Approve ${doc.area.toUpperCase()} v${doc.version}`} onClose={onClose}>
+    <Dialog title={`Approve ${doc.area.toUpperCase()} v${doc.version}`} onClose={onClose}>
       <div className="space-y-4 text-sm text-slate-300">
         <p>
           Approving v{doc.version} locks its content hash (<code className="text-xs text-indigo-300">{doc.content_hash.slice(0, 16)}…</code>) as immutable and updates the Project Brain.
