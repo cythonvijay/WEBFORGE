@@ -1,4 +1,4 @@
-export interface NavItem { key: string; label: string; group: string; stage?: string; phase?: number }
+export interface NavItem { key: string; label: string; group: string; stage?: string; phase?: number; blurb?: string }
 
 /**
  * Roadmap Phases 0–8 are platform & pre-lifecycle workflows:
@@ -49,3 +49,4 @@ export const PROJECT_NAV: NavItem[] = [
 
 export const NAV_GROUPS = Array.from(new Set(PROJECT_NAV.map((n) => n.group)));
 export const findNav = (key?: string) => PROJECT_NAV.find((n) => n.key === key);
+export const findNavItem = findNav;
