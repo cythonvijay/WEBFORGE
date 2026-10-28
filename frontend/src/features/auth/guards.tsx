@@ -11,9 +11,12 @@ export function RequireAuth() {
   return <Outlet />;
 }
 
-export function PublicOnly({ children }: { children: React.ReactNode }) {
+export function PublicOnly({ children }: { children?: React.ReactNode } = {}) {
   const { status } = useAuth();
   if (status === "loading") return <LoadingState label="Loading…" />;
   if (status === "authenticated") return <Navigate to="/projects" replace />;
-  return <>{children}</>;
+  return children ? <>{children}</> : <Outlet />;
 }
+
+export const ProtectedRoute = RequireAuth;
+export const PublicOnlyRoute = PublicOnly;
