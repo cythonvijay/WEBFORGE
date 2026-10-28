@@ -1,5 +1,7 @@
-import type { DocStatus } from "./research";
-import type { PrerequisiteCheck } from "./ux";
+import type { DocStatus } from "./strategy";
+import type { OptimizationPrerequisitesStatus } from "./optimization";
+
+type PrerequisiteCheck = OptimizationPrerequisitesStatus;
 
 export type ComponentLayer = "frontend" | "backend" | "data" | "integration" | "infrastructure";
 export type TrustZone =
