@@ -14,6 +14,7 @@ import { useAsync } from "../lib/useAsync";
 import { formatDateTime } from "../lib/utils";
 import type {
   ArchitectureComponent,
+  ArchitectureContent,
   ArchitectureDecision,
   ArchitectureDiagram,
   ArchitectureDocument,
@@ -511,7 +512,7 @@ export default function ArchitecturePage() {
           busy={busy === "generate"}
           onCancel={() => setModal(null)}
           onConfirm={() =>
-            void run(
+            run(
               "generate",
               () => architectureApi.generate(pid, true),
               (s) => {
@@ -529,7 +530,7 @@ export default function ArchitecturePage() {
           busy={busy === "approve"}
           onCancel={() => setModal(null)}
           onConfirm={(ack, note) =>
-            void run(
+            run(
               "approve",
               () => architectureApi.approve(pid, doc.version, hash, ack, note),
               (s) => {
@@ -557,11 +558,7 @@ function SystemOverviewSection({
   pid: string;
   version: number;
   hash: string;
-  overview: ArchitectureState["current"] extends { content: infer C }
-    ? C extends { system_overview: infer SO }
-      ? SO
-      : never
-    : never;
+  overview: ArchitectureContent["system_overview"];
   canEdit: boolean;
   busy: string | null;
   run: <T>(key: string, fn: () => Promise<T>, onDone: (r: T) => void) => Promise<void>;
