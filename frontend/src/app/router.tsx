@@ -8,7 +8,7 @@ import JourneysPage from "../pages/JourneysPage";
 import LoginPage from "../pages/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import { AnalyticsPage, PerformancePage, SeoPage } from "../pages/OptimizationPage";
-import OverviewPage from "../pages/OverviewPage";
+import ProjectOverviewPage from "../pages/ProjectOverviewPage";
 import PersonasPage from "../pages/PersonasPage";
 import PrdPage from "../pages/PrdPage";
 import ProjectLayout from "../pages/ProjectLayout";
@@ -21,7 +21,7 @@ import SettingsPage from "../pages/SettingsPage";
 import StrategyPage from "../pages/StrategyPage";
 import UxReviewPage from "../pages/UxReviewPage";
 import WireframesPage from "../pages/WireframesPage";
-import { ProtectedRoute, PublicOnlyRoute } from "./guards";
+import { ProtectedRoute, PublicOnlyRoute } from "../features/auth/guards";
 
 export const routes: RouteObject[] = [
   { path: "/", element: <Navigate to="/projects" replace /> },
@@ -41,7 +41,7 @@ export const routes: RouteObject[] = [
         element: <ProjectLayout />,
         children: [
           { index: true, element: <Navigate to="overview" replace /> },
-          { path: "overview", element: <OverviewPage /> },
+          { path: "overview", element: <ProjectOverviewPage /> },
           { path: "discovery", element: <DiscoveryPage /> },
           { path: "research", element: <ResearchPage /> },
           { path: "strategy", element: <StrategyPage /> },
@@ -68,3 +68,4 @@ export const routes: RouteObject[] = [
 ];
 
 export const buildRouter = () => createBrowserRouter(routes);
+export const createAppRouter = buildRouter;
