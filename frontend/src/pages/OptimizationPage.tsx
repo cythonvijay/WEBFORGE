@@ -514,25 +514,26 @@ export function OptimizationWorkspace({ area }: { area: OptimizationArea }) {
       )}
 
       {/* Regenerate Confirm Dialog */}
-      <ConfirmDialog
-        open={modal === "regenerate"}
-        title={`Regenerate ${meta.title} Draft?`}
-        description="This will replace your current open draft with a newly generated specification grounded in the latest approved upstream artifacts."
-        confirmLabel="Regenerate"
-        onCancel={() => setModal(null)}
-        onConfirm={() => {
-          setModal(null);
-          run(
-            "regenerate",
-            () => optimizationApi.generate(pid, area, true),
-            (s) => {
-              setOverride(s);
-              setViewing(null);
-              setNotice({ tone: "success", title: `Regenerated ${meta.title} draft.` });
-            }
-          );
-        }}
-      />
+      {modal === "regenerate" && (
+        <ConfirmDialog
+          title={`Regenerate ${meta.title} Draft?`}
+          body="This will replace your current open draft with a newly generated specification grounded in the latest approved upstream artifacts."
+          confirmLabel="Regenerate"
+          onClose={() => setModal(null)}
+          onConfirm={async () => {
+            setModal(null);
+            await run(
+              "regenerate",
+              () => optimizationApi.generate(pid, area, true),
+              (s) => {
+                setOverride(s);
+                setViewing(null);
+                setNotice({ tone: "success", title: `Regenerated ${meta.title} draft.` });
+              }
+            );
+          }}
+        />
+      )}
 
       {/* Approve Dialog */}
       {modal === "approve" && state.current_draft && (
