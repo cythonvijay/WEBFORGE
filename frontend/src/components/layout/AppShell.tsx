@@ -33,7 +33,7 @@ export default function AppShell() {
         </div>
       </header>
       <div className="relative flex min-h-0 flex-1">
-        {open && <div aria-hidden className="fixed inset-x-0 bottom-0 top-12 z-20 bg-slate-900/30 md:hidden" onClick={() => setOpen(false)} />}
+        {open && <div aria-hidden="true" role="presentation" data-testid="sidebar-backdrop" className="fixed inset-x-0 bottom-0 top-12 z-20 bg-slate-900/30 md:hidden" onClick={() => setOpen(false)} />}
         <aside id="sidebar" className={cn("w-60 shrink-0 overflow-y-auto border-r border-slate-200 bg-white", open ? "fixed bottom-0 left-0 top-12 z-30 block shadow-lg" : "hidden", "md:static md:block md:shadow-none")}>
           <SidebarNav projectId={projectId} />
         </aside>
