@@ -6,8 +6,9 @@ const BASE = "block w-full rounded-md border bg-white px-3 text-sm text-slate-90
 
 interface Common { label: string; error?: string; hint?: string }
 
-export function TextField({ label, error, hint, className, ...rest }: Common & InputHTMLAttributes<HTMLInputElement>) {
-  const id = useId();
+export function TextField({ label, error, hint, className, id: suppliedId, ...rest }: Common & InputHTMLAttributes<HTMLInputElement>) {
+  const generatedId = useId();
+  const id = suppliedId ?? generatedId;
   const desc = error ? `${id}-err` : hint ? `${id}-hint` : undefined;
   return (
     <div>
@@ -20,8 +21,9 @@ export function TextField({ label, error, hint, className, ...rest }: Common & I
   );
 }
 
-export function TextAreaField({ label, error, hint, className, ...rest }: Common & TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  const id = useId();
+export function TextAreaField({ label, error, hint, className, id: suppliedId, ...rest }: Common & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  const generatedId = useId();
+  const id = suppliedId ?? generatedId;
   const desc = error ? `${id}-err` : hint ? `${id}-hint` : undefined;
   return (
     <div>
