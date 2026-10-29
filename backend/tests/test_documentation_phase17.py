@@ -86,8 +86,12 @@ def test_archive_path_safety_and_secret_scanning():
     manifest_str = json.dumps({"schema_version": "v1", "files": list(docs.keys())}, sort_keys=True, indent=2) + "\n"
     zip1, sha1 = build_deterministic_zip_bytes(docs, manifest_str)
     zip2, sha2 = build_deterministic_zip_bytes(docs, manifest_str)
-    assert zip1 == zip2
-    assert sha1 == sha2
+    reversed_docs = dict(reversed(list(docs.items())))
+    zip3, sha3 = build_deterministic_zip_bytes(reversed_docs, manifest_str)
+    assert zip1 == zip2 == zip3
+    assert sha1 == sha2 == sha3
+    with zipfile.ZipFile(io.BytesIO(zip1), "r") as archive:
+        assert archive.namelist() == ["README.md", "01-research.md", "MANIFEST.json"]
 
     # 4. Secret scanning detects credentials, private keys, database passwords, and internal paths
     clean_hits = scan_export_for_secrets(docs, manifest_str)
