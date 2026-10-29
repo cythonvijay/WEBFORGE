@@ -1,13 +1,17 @@
+import { lazy, Suspense } from "react";
 import { Navigate, type RouteObject, createBrowserRouter } from "react-router-dom";
-import ArchitecturePage from "../pages/ArchitecturePage";
+import { LoadingState } from "../components/feedback/States";
+const ArchitecturePage = lazy(() => import("../pages/ArchitecturePage"));
 import DesignSystemPage from "../pages/DesignSystemPage";
 import DiscoveryPage from "../pages/DiscoveryPage";
-import DocumentationPage from "../pages/DocumentationPage";
+const DocumentationPage = lazy(() => import("../pages/DocumentationPage"));
 import IaPage from "../pages/IaPage";
 import JourneysPage from "../pages/JourneysPage";
 import LoginPage from "../pages/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
-import { AnalyticsPage, PerformancePage, SeoPage } from "../pages/OptimizationPage";
+const SeoPage = lazy(() => import("../pages/OptimizationPage").then((module) => ({ default: module.SeoPage })));
+const AnalyticsPage = lazy(() => import("../pages/OptimizationPage").then((module) => ({ default: module.AnalyticsPage })));
+const PerformancePage = lazy(() => import("../pages/OptimizationPage").then((module) => ({ default: module.PerformancePage })));
 import ProjectOverviewPage from "../pages/ProjectOverviewPage";
 import PersonasPage from "../pages/PersonasPage";
 import PrdPage from "../pages/PrdPage";
@@ -53,11 +57,11 @@ export const routes: RouteObject[] = [
           { path: "ux-review", element: <UxReviewPage /> },
           { path: "design-system", element: <DesignSystemPage /> },
           { path: "prototype", element: <PrototypePage /> },
-          { path: "architecture", element: <ArchitecturePage /> },
-          { path: "seo", element: <SeoPage /> },
-          { path: "analytics", element: <AnalyticsPage /> },
-          { path: "performance", element: <PerformancePage /> },
-          { path: "documentation", element: <DocumentationPage /> },
+          { path: "architecture", element: <Suspense fallback={<LoadingState label="Loading Architecture..." />}><ArchitecturePage /></Suspense> },
+          { path: "seo", element: <Suspense fallback={<LoadingState label="Loading SEO..." />}><SeoPage /></Suspense> },
+          { path: "analytics", element: <Suspense fallback={<LoadingState label="Loading Analytics..." />}><AnalyticsPage /></Suspense> },
+          { path: "performance", element: <Suspense fallback={<LoadingState label="Loading Performance..." />}><PerformancePage /></Suspense> },
+          { path: "documentation", element: <Suspense fallback={<LoadingState label="Loading Documentation..." />}><DocumentationPage /></Suspense> },
           { path: "settings", element: <SettingsPage /> },
           { path: ":section", element: <SectionPage /> },
         ],
