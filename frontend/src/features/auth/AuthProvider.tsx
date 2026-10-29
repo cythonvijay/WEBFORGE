@@ -56,7 +56,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setState({ status: "authenticated", user });
   }, []);
   const logout = useCallback(async () => {
-    try { await api.post("/auth/logout"); } finally { setState({ status: "anonymous", user: null, signedOut: true }); }
+    // Start cookie revocation before changing UI state, but never make navigation wait for the network.
+    const revokeSession = api.post("/auth/logout");
+    setState({ status: "anonymous", user: null, signedOut: true });
+    try {
+      await revokeSession;
+    } catch {
+      // Keep the local UI signed out even when the network cannot reach the API.
+    }
   }, []);
 
   const value = useMemo<AuthValue>(
