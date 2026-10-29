@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Navigate, type RouteObject, createBrowserRouter } from "react-router-dom";
 import { LoadingState } from "../components/feedback/States";
+import AppShell from "../components/layout/AppShell";
 const ArchitecturePage = lazy(() => import("../pages/ArchitecturePage"));
 import DesignSystemPage from "../pages/DesignSystemPage";
 import DiscoveryPage from "../pages/DiscoveryPage";
@@ -39,8 +40,12 @@ export const routes: RouteObject[] = [
   {
     element: <ProtectedRoute />,
     children: [
-      { path: "/projects", element: <ProjectsPage /> },
       {
+        element: <AppShell />,
+        children: [
+          { path: "/projects", element: <ProjectsPage /> },
+          { path: "/settings", element: <SettingsPage /> },
+          {
         path: "/projects/:projectId",
         element: <ProjectLayout />,
         children: [
@@ -64,6 +69,8 @@ export const routes: RouteObject[] = [
           { path: "documentation", element: <Suspense fallback={<LoadingState label="Loading Documentation..." />}><DocumentationPage /></Suspense> },
           { path: "settings", element: <SettingsPage /> },
           { path: ":section", element: <SectionPage /> },
+        ],
+          },
         ],
       },
     ],
