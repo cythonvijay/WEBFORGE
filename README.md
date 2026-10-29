@@ -37,7 +37,7 @@ cd frontend && npm ci && npm run dev   # http://localhost:5173 (proxies /api -> 
 
 | Command | Description |
 | :--- | :--- |
-| `make test` | Run backend unit, API, security, and infrastructure tests on SQLite (`194 passed`) |
+| `make test` | Run backend unit, API, security, and infrastructure tests on SQLite; the suite count changes as tests are added. |
 | `make test-pg` | Run full backend test suite including PostgreSQL concurrency tests against PostgreSQL 16 |
 | `make check-db` | Verify database connectivity and confirm `alembic_version` matches head (`0009`) |
 | `make backup` | Create a checksummed logical backup (`.wfbackup.json` + `.pgdump` sidecar on PG) in `backups/` |

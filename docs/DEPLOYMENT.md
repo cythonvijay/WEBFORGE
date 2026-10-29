@@ -110,6 +110,39 @@ During FastAPI lifespan startup (`enforce_startup_settings` in `backend/app/conf
 
 ---
 
+### Vercel Frontend + Separately Hosted FastAPI Backend
+
+The frontend defaults to `VITE_API_BASE_URL=/api`. `VITE_DEV_PROXY_TARGET` is only for the local Vite development server; it does not configure a production proxy.
+
+If the Vite frontend is deployed to Vercel while FastAPI is hosted separately (for example, on Render):
+
+1. Set the Vercel project root to `frontend`, the build command to `npm run build`, and the output directory to `dist`.
+2. Keep `VITE_API_BASE_URL=/api` so browser requests stay on the frontend origin and retain the app's HTTP-only cookie session behavior.
+3. Add a `vercel.json` in the Vercel project root with an API rewrite **before** the SPA fallback. Replace the example hostname with the real deployed backend origin; do not deploy the placeholder hostname:
+
+   ```json
+   {
+     "$schema": "https://openapi.vercel.sh/vercel.json",
+     "rewrites": [
+       {
+         "source": "/api/:path*",
+         "destination": "https://YOUR-BACKEND-HOST.example/api/:path*"
+       },
+       {
+         "source": "/(.*)",
+         "destination": "/index.html"
+       }
+     ]
+   }
+   ```
+
+4. Configure the backend with `ENVIRONMENT=production`, `DATABASE_URL=postgresql+psycopg://...`, a generated `JWT_SECRET` of at least 32 characters, `COOKIE_SECURE=true`, and `CORS_ORIGINS` containing the exact production frontend origin(s). Set `GOOGLE_AI_API_KEY` only if live Gemini generation is required.
+5. Redeploy after changing Vercel environment variables, since `VITE_*` variables are embedded at build time. Never put database credentials, JWT secrets, or the Google AI API key in any `VITE_*` variable.
+
+Do not point `VITE_API_BASE_URL` directly at a separate backend origin without changing the authentication/CSRF design: the app uses cookie sessions and blocks cross-site state-changing requests. Verify the proxy through the frontend origin using `/api/health/live`, then verify backend readiness and migration head using `/api/ready`.
+
+---
+
 ## 5. Recommended Production Deployment Target & Cost Assumptions
 
 ### Recommended Target Topology
@@ -143,7 +176,7 @@ curl -fsS http://127.0.0.1:8080/api/health/ready
 
 The GitHub Actions workflow runs on `push` and `pull_request` to `main` with `permissions: contents: read`:
 1. **`security-and-hygiene`**: Secret regex scan across all tracked files and static security assertions (`SecurityMiddleware`, non-root Dockerfiles, zero unsafe DOM sinks).
-2. **`backend-sqlite-and-ops`**: Installs pinned `backend/requirements.txt`, verifies Alembic `upgrade head -> downgrade base -> upgrade head` (`0001..0007`), runs disposable backup/restore verification (`python -m scripts.db_ops verify-backup-restore`), and runs the full SQLite pytest suite.
+2. **`backend-sqlite-and-ops`**: Installs pinned `backend/requirements.txt`, verifies Alembic `upgrade head -> downgrade base -> upgrade head` (`0001..0009`), runs disposable backup/restore verification (`python -m scripts.db_ops verify-backup-restore`), and runs the full SQLite pytest suite.
 3. **`backend-postgres-integration`**: Spins up an isolated `postgres:16-bookworm` service container, runs `python -m scripts.db_ops migrate`, and executes the full pytest suite including `tests/test_postgres.py` against PostgreSQL 16.
 4. **`frontend-verify`**: Runs `npm ci`, `npm run typecheck`, `npm test`, `npm run build`, and scans `dist/` to ensure no server secrets leaked into client bundles.
 5. **`dependency-audit`**: Runs `pip-audit -r backend/requirements.txt` and `npm audit --omit=dev --audit-level=high`.
