@@ -1528,7 +1528,11 @@ def build_deterministic_zip_bytes(
     seen_paths: set[str] = set()
     entries: list[tuple[str, bytes]] = []
 
-    for fname, content in documents.items():
+    # Canonicalize entries instead of trusting dict insertion order. SQLite preserves JSON
+    # insertion order, but PostgreSQL JSONB may return object keys in a different order.
+    # Keep README first for human-friendly archive browsing, then sort the numbered documents.
+    ordered_documents = sorted(documents.items(), key=lambda item: (item[0] != "README.md", item[0]))
+    for fname, content in ordered_documents:
         safe_path = validate_safe_archive_path(fname)
         if safe_path in seen_paths:
             raise ValueError(f"Duplicate archive entry path: {safe_path}")
