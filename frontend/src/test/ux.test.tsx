@@ -33,7 +33,7 @@ const readyPrereqs = {
 };
 
 describe("Phase 11 UX Workspaces (Personas, Journeys, IA, Wireframes, UX Review)", () => {
-  it("exposes all 5 UX workspaces in navigation without Phase 11 placeholder badges while keeping Design System badged as Phase 12", async () => {
+  it("exposes all 5 UX workspaces and Design System without placeholder phase badges", async () => {
     mockApi({
       ...base,
       "GET /projects/:id/ux/personas": {
@@ -64,7 +64,8 @@ describe("Phase 11 UX Workspaces (Personas, Journeys, IA, Wireframes, UX Review)
     for (const label of [/^Personas$/, /^User Journeys$/, /^Information Architecture$/, /^Wireframes$/, /^UX Review$/]) {
       expect(within(nav).getByRole("link", { name: label })).not.toHaveTextContent("Phase 11");
     }
-    expect(within(nav).getByRole("link", { name: /Design System/ })).toHaveTextContent("Phase 12");
+    expect(within(nav).getByRole("link", { name: /^Design System$/ })).not.toHaveTextContent("Phase 12");
+    expect(within(nav).getByRole("link", { name: /^Prototype$/ })).not.toHaveTextContent("Phase 12");
   });
 
   it("displays explicit prerequisite gates and workspace links when upstream artifacts are missing", async () => {

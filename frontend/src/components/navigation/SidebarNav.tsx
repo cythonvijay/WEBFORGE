@@ -24,7 +24,7 @@ export function SidebarNav({ projectId }: { projectId?: string }) {
               <li key={it.key}>
                 <NavLink to={`/projects/${projectId}/${it.key}`} className={link}>
                   <span>{it.label}</span>
-                  {it.phase && <span className="ml-2 shrink-0 whitespace-nowrap text-[11px] text-slate-600">{it.phasePlaceholder !== false && <span className="sr-only">Not implemented, </span>}Phase {it.phase}</span>}
+                  {it.phase && <span className="ml-2 shrink-0 whitespace-nowrap text-[11px] text-slate-600"><span className="sr-only">Not implemented, </span>Phase {it.phase}</span>}
                 </NavLink>
               </li>
             ))}
