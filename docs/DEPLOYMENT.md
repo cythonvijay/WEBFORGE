@@ -126,7 +126,7 @@ If the Vite frontend is deployed to Vercel while FastAPI is hosted separately (f
      "rewrites": [
        {
          "source": "/api/:path*",
-         "destination": "https://YOUR-BACKEND-HOST.example/api/:path*"
+         "destination": "https://webforge-qpmj.vercel.app/api/:path*"
        },
        {
          "source": "/(.*)",
@@ -137,7 +137,7 @@ If the Vite frontend is deployed to Vercel while FastAPI is hosted separately (f
    ```
 
 4. Configure the backend with `ENVIRONMENT=production`, `DATABASE_URL=postgresql+psycopg://...`, a generated `JWT_SECRET` of at least 32 characters, `COOKIE_SECURE=true`, and `CORS_ORIGINS` containing the exact production frontend origin(s). Set `GOOGLE_AI_API_KEY` only if live Gemini generation is required.
-5. Redeploy after changing Vercel environment variables, since `VITE_*` variables are embedded at build time. Never put database credentials, JWT secrets, or the Google AI API key in any `VITE_*` variable.
+5. In the backend Vercel project's production environment, set `CORS_ORIGINS` to the exact frontend origin (currently `https://webforge-8fbg.vercel.app`; include any stable custom/production frontend domain you use). Ensure `DATABASE_URL`, `JWT_SECRET`, `ENVIRONMENT=production`, and `COOKIE_SECURE=true` are set for the backend project. Redeploy after changing Vercel environment variables, since `VITE_*` variables are embedded at build time. Never put database credentials, JWT secrets, or the Google AI API key in any `VITE_*` variable. The backend root `/` can return `{"detail":"Not Found"}` by design; test `/api/health/live` and `/api/ready` instead.
 
 Do not point `VITE_API_BASE_URL` directly at a separate backend origin without changing the authentication/CSRF design: the app uses cookie sessions and blocks cross-site state-changing requests. Verify the proxy through the frontend origin using `/api/health/live`, then verify backend readiness and migration head using `/api/ready`.
 
