@@ -1,4 +1,4 @@
-export interface NavItem { key: string; label: string; group: string; stage?: string; phase?: number; blurb?: string }
+export interface NavItem { key: string; label: string; group: string; stage?: string; phase?: number; phasePlaceholder?: boolean; blurb?: string }
 
 /**
  * Roadmap Phases 0–8 are platform & pre-lifecycle workflows:
@@ -7,7 +7,7 @@ export interface NavItem { key: string; label: string; group: string; stage?: st
  * - Phase 8: AI Discovery Q&A (`/projects/:id/discovery`)
  *
  * Roadmap Phases 9–17 implement the 19 engineering lifecycle stages (`STAGES`).
- * `phase` is only set on sidebar items whose workspace is not yet implemented (routed to SectionPage).
+ * `phase` labels a roadmap phase; `phasePlaceholder` controls whether the label announces an unimplemented workspace.
  */
 export const PRE_LIFECYCLE_NOTE =
   "Pre-lifecycle setup (Phases 1–8: Overview, AI Intake, and Discovery) populates your Project Brain. The 19 engineering lifecycle stages start at Phase 9 (Research).";
@@ -24,7 +24,7 @@ export const PROJECT_NAV: NavItem[] = [
   { key: "ia", label: "Information Architecture", group: "UX", stage: "ux" },
   { key: "wireframes", label: "Wireframes", group: "UX", stage: "ux" },
   { key: "ux-review", label: "UX Review", group: "UX", stage: "ux" },
-  { key: "design-system", label: "Design System", group: "Design", stage: "design" },
+  { key: "design-system", label: "Design System", group: "Design", stage: "design", phase: 12, phasePlaceholder: false },
   { key: "prototype", label: "Prototype", group: "Design", stage: "design" },
   { key: "architecture", label: "Architecture", group: "Engineering", stage: "architecture" },
   { key: "frontend", label: "Frontend", group: "Engineering", stage: "frontend", phase: 13 },
