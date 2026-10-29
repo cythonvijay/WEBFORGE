@@ -144,19 +144,37 @@ def evaluate_optimization_prerequisites(db: Session, project_id: str) -> dict[st
             remediation_links.append({"label": label, "workspace": workspace, "reason": blocker})
 
     # 1. Research
-    res_rows = db.scalars(select(ResearchReport).where(ResearchReport.project_id == project_id))
+    res_rows = list(
+        db.scalars(
+            select(ResearchReport)
+            .where(ResearchReport.project_id == project_id)
+            .order_by(ResearchReport.version.desc())
+        )
+    )
     res_app = next((r for r in res_rows if r.status == "approved"), None)
     res_dr = next((r for r in res_rows if r.status in ("draft", "in_review")), None)
     _add("research", "User & Market Research", "research", res_app.version if res_app else None, res_dr.version if res_dr else None)
 
     # 2. Strategy
-    st_rows = db.scalars(select(StrategyDocument).where(StrategyDocument.project_id == project_id))
+    st_rows = list(
+        db.scalars(
+            select(StrategyDocument)
+            .where(StrategyDocument.project_id == project_id)
+            .order_by(StrategyDocument.version.desc())
+        )
+    )
     st_app = next((r for r in st_rows if r.status == "approved"), None)
     st_dr = next((r for r in st_rows if r.status in ("draft", "in_review")), None)
     _add("strategy", "Product Strategy", "strategy", st_app.version if st_app else None, st_dr.version if st_dr else None)
 
     # 3. PRD
-    prd_rows = db.scalars(select(PrdDocument).where(PrdDocument.project_id == project_id))
+    prd_rows = list(
+        db.scalars(
+            select(PrdDocument)
+            .where(PrdDocument.project_id == project_id)
+            .order_by(PrdDocument.version.desc())
+        )
+    )
     prd_app = next((r for r in prd_rows if r.status == "approved"), None)
     prd_dr = next((r for r in prd_rows if r.status in ("draft", "in_review")), None)
     _add("prd", "Product Requirements Document (PRD)", "prd", prd_app.version if prd_app else None, prd_dr.version if prd_dr else None)
@@ -164,8 +182,12 @@ def evaluate_optimization_prerequisites(db: Session, project_id: str) -> dict[st
     # 4. UX Artifacts
     for utype in ux.ARTIFACT_TYPES:
         uws = UX_PATHS[utype]
-        ux_rows = db.scalars(
-            select(UxArtifact).where(UxArtifact.project_id == project_id, UxArtifact.artifact_type == utype)
+        ux_rows = list(
+            db.scalars(
+                select(UxArtifact)
+                .where(UxArtifact.project_id == project_id, UxArtifact.artifact_type == utype)
+                .order_by(UxArtifact.version.desc())
+            )
         )
         ux_app = next((r for r in ux_rows if r.status == "approved"), None)
         ux_dr = next((r for r in ux_rows if r.status in ("draft", "in_review")), None)
@@ -176,15 +198,25 @@ def evaluate_optimization_prerequisites(db: Session, project_id: str) -> dict[st
         ("design_system", "design-system", "Design System"),
         ("prototype", "prototype", "Interactive Prototype"),
     ):
-        d_rows = db.scalars(
-            select(DesignArtifact).where(DesignArtifact.project_id == project_id, DesignArtifact.artifact_type == dtype)
+        d_rows = list(
+            db.scalars(
+                select(DesignArtifact)
+                .where(DesignArtifact.project_id == project_id, DesignArtifact.artifact_type == dtype)
+                .order_by(DesignArtifact.version.desc())
+            )
         )
         d_app = next((r for r in d_rows if r.status == "approved"), None)
         d_dr = next((r for r in d_rows if r.status in ("draft", "in_review")), None)
         _add(dtype, dlabel, dws, d_app.version if d_app else None, d_dr.version if d_dr else None)
 
     # 6. Product Architecture
-    arch_rows = db.scalars(select(ArchitectureDocument).where(ArchitectureDocument.project_id == project_id))
+    arch_rows = list(
+        db.scalars(
+            select(ArchitectureDocument)
+            .where(ArchitectureDocument.project_id == project_id)
+            .order_by(ArchitectureDocument.version.desc())
+        )
+    )
     arch_app = next((r for r in arch_rows if r.status == "approved"), None)
     arch_dr = next((r for r in arch_rows if r.status in ("draft", "in_review")), None)
     arch_extra = None
