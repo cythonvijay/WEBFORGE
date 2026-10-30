@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://webforge-x8y4.onrender.com/api/:path*"
+     "destination": "https://webforge1-g51z.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
