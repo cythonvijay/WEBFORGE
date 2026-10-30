@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://webforge-qpmj.vercel.app/api/:path*"
+      "destination": "https://webforge-x8y4.onrender.com/api/:path*"
     },
     {
       "source": "/(.*)",
