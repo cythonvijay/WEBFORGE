@@ -33,7 +33,8 @@ USER webforge
 EXPOSE 8000
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=10s --retries=3 \
-    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/live', timeout=3)"]
+    CMD-SHELL python -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.getenv('PORT', '8000') + '/api/health/live', timeout=3)"
 
-# Workers never run Alembic migrations automatically; run `python -m scripts.db_ops migrate` as an explicit release step.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--timeout-graceful-shutdown", "30"]
+# Apply migrations before serving traffic. Render's PORT is used when supplied;
+# local Docker Compose falls back to port 8000.
+CMD ["sh", "-c", "python -m scripts.db_ops migrate && exec uvicorn app.main:app --host 0.0.0.0 --port \"${PORT:-8000}\" --proxy-headers --timeout-graceful-shutdown 30"]

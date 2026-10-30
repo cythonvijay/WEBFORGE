@@ -103,9 +103,25 @@ def run_migrate(db_url: str | None = None, target_engine=None) -> int:
     prev_url = os.environ.get("DATABASE_URL")
     old_settings_url = settings.database_url
     old_engine = app_db.engine
+    migration_lock_conn = None
+    migration_lock_id = 0x574542464F524745  # Stable PostgreSQL advisory lock key: "WEBFORGE".
+    migration_lock_acquired = False
     try:
         settings.database_url = url
         app_db.engine = eng
+
+        # Multiple Render services may share one PostgreSQL database. Hold a
+        # session-level advisory lock while Alembic uses its own connection so
+        # their startup migrations cannot run concurrently.
+        if eng.dialect.name == "postgresql":
+            migration_lock_conn = eng.connect()
+            migration_lock_conn.execute(
+                text("SELECT pg_advisory_lock(:lock_id)"),
+                {"lock_id": migration_lock_id},
+            )
+            migration_lock_conn.commit()
+            migration_lock_acquired = True
+
         cfg = _alembic_cfg(url)
         command.upgrade(cfg, "head")
         status = check_database_readiness(eng, verify_migrations=True)
@@ -118,6 +134,18 @@ def run_migrate(db_url: str | None = None, target_engine=None) -> int:
         logger.error(f"Database migration failed ({type(exc).__name__}): {redact_sensitive_text(str(exc))}")
         return 1
     finally:
+        if migration_lock_conn is not None:
+            try:
+                if migration_lock_acquired:
+                    migration_lock_conn.execute(
+                        text("SELECT pg_advisory_unlock(:lock_id)"),
+                        {"lock_id": migration_lock_id},
+                    )
+                    migration_lock_conn.commit()
+            except Exception as lock_exc:
+                logger.warning(f"Could not explicitly release migration advisory lock ({type(lock_exc).__name__}); closing the connection will release it.")
+            finally:
+                migration_lock_conn.close()
         app_db.engine = old_engine
         settings.database_url = old_settings_url
         if prev_url is not None:

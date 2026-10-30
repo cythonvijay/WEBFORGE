@@ -95,10 +95,11 @@ During FastAPI lifespan startup (`enforce_startup_settings` in `backend/app/conf
 ## 4. Production Container Architecture
 
 ### Backend Image (`backend/Dockerfile`)
-- **Multi-stage build**: Stage 1 (`python:3.12-slim-bookworm` `builder`) installs pinned Python dependencies into `/install` with `PIP_NO_CACHE_DIR=1`. Stage 2 (`runtime`) copies only `/install`, `alembic.ini`, `alembic/`, `app/`, and `scripts/`.
+- **Multi-stage build**: Stage 1 (`python:3.12-slim-bookworm` `builder`) installs Python dependencies into `/install` with `PIP_NO_CACHE_DIR=1`. Stage 2 (`runtime`) copies only `/install`, `alembic.ini`, `alembic/`, `app/`, and `scripts/`.
 - **Non-root execution**: Runs as system user `webforge` (`UID 10001`, `GID 10001`).
-- **Signal handling & workers**: Uses exec-form `CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--timeout-graceful-shutdown", "30"]` so `SIGTERM` triggers clean connection draining.
-- **No concurrent worker auto-migrations**: Application workers never run `alembic upgrade head` on boot; migrations run exclusively via the dedicated `migrate` job (`python -m scripts.db_ops migrate`).
+- **Startup migrations**: The Docker image runs `python -m scripts.db_ops migrate` before Uvicorn. If a migration fails, the web process is not started. This supports Render Free services without a pre-deploy command.
+- **Concurrent startup protection**: PostgreSQL migrations are serialized with a session-level advisory lock in `db_ops.py`, so multiple WebForge services sharing one database do not run Alembic simultaneously.
+- **Signal handling and Render port**: The shell command uses `exec uvicorn` so `SIGTERM` reaches Uvicorn. It binds to Render's `PORT` environment variable, falling back to `8000` for local Docker Compose.
 
 ### Frontend Image (`frontend/Dockerfile` & `frontend/nginx.conf`)
 - **Multi-stage build**: Stage 1 (`node:22-alpine` `builder`) runs `npm ci` and `npm run build` (`tsc --noEmit && vite build`). No server-side secrets (`GOOGLE_AI_API_KEY`, `JWT_SECRET`, `DATABASE_URL`) are passed into the build.
@@ -109,6 +110,18 @@ During FastAPI lifespan startup (`enforce_startup_settings` in `backend/app/conf
   - `/index.html` and SPA routes (`try_files $uri $uri/ /index.html;`) set `Cache-Control: no-cache, no-store, must-revalidate` so browser clients never serve a stale application shell after deployment.
 
 ---
+
+### Render Docker Backend (Free-plan startup migrations)
+
+For a Render Docker Web Service using the Free plan without a pre-deploy command:
+1. Set the service's Root Directory to `backend` and use the Dockerfile in that directory.
+2. Leave Render's Docker Command override empty so the image's `CMD` runs.
+3. Set the service's `DATABASE_URL`, `JWT_SECRET`, `ENVIRONMENT=production`, `COOKIE_SECURE=true`, and `CORS_ORIGINS` environment variables.
+4. The container applies migrations through `python -m scripts.db_ops migrate` before starting Uvicorn. A failed migration prevents the service from starting.
+5. The container binds to Render's `PORT` (default `10000`); local Docker Compose falls back to `8000`.
+6. If multiple backend services share one PostgreSQL database, the migration runner uses a PostgreSQL advisory lock to serialize startup migrations.
+
+This behavior applies to Docker-based Render services. A native Python Render service uses its dashboard Start Command instead.
 
 ### Vercel Frontend + Separately Hosted FastAPI Backend
 
